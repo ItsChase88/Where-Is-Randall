@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Where's Randall?</title>
+    <style>
+        body {
+            color: #fff;
+            font-family: 'Arial Black', sans-serif;
+            background-color: #242424;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stage {
+            background-image: url("assets/img/bg.webp");
+            background-repeat: no-repeat;
+            background-size: cover;
+            width: 1140px;
+            height: 641px;
+        }
+
+        .timerBox {
+            display: flex;
+            justify-content: center;
+        }
+
+        #timer {
+            font-size: 50px;
+            letter-spacing: 5px;
+            color: #fff;
+            -webkit-text-stroke: 4px black;
+        }
+
+        .timerms {
+            font-size: 30px;
+            letter-spacing: 5px;
+            color: #fff;
+            -webkit-text-stroke: 4px black;
+            top: 20px;
+        }
+
+        #randall {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <h1>Where's Randall?</h1>
+    <div class="container">
+        <div class="stage">
+            <div class="timerBox">
+                <span id="timer">00:00.00</span>
+            </div>
+            <img id="randall" src="assets/img/randall.png" width="50px" draggable="false">
+        </div>
+    </div>
+    <h1>Created with ♡ by Sethibuns and Chase88</h1>
+
+    <script>
+        function selectRandTime() {
+            const time = getRandomTime(0.01, 480);
+            const formattedTime = formatTime(time);
+
+            const timer = document.getElementById('timer');
+            timer.textContent = formattedTime;
+        }
+
+        function getRandomTime(minSeconds, maxSeconds) {
+            return Math.random() * (maxSeconds - minSeconds) + minSeconds;
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const millis = Math.floor((seconds - Math.floor(seconds)) * 100);
+
+            const formattedMins = String(mins).padStart(2, '0');
+            const formattedSecs = String(secs).padStart(2, '0');
+            const formattedMillis = String(millis).padStart(2, '0');
+
+            return `${formattedMins}:${formattedSecs}.${formattedMillis}`;
+        }
+
+        selectRandTime();
+    </script>
+</body>
