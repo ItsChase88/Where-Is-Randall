@@ -52,6 +52,15 @@
         #randall {
             position: absolute;
         }
+
+        #track {
+            position: relative;
+            top: 455px;
+            left: 169px;
+            width: 785px;
+            height: 68px;
+            border: 2px dashed black;
+        }
     </style>
 </head>
 <body>
@@ -61,6 +70,7 @@
             <div class="timerBox">
                 <span id="timer">00:00.00</span>
             </div>
+            <div id="track"></div>
             <img id="randall" src="assets/img/randall.png" width="50px" draggable="false" hidden="true">
         </div>
     </div>
@@ -76,8 +86,8 @@
     <script>
         /* RANDALL */
         
-        function getStageSize() {
-            const element = document.getElementById("stage");
+        function getTrackSize() {
+            const element = document.getElementById("track");
             var rect = element.getBoundingClientRect();
             return rect;
         }
@@ -86,21 +96,66 @@
             return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom;
         }
 
-        /* EVENTS */
-        function onClickEvent(event) {
-            var height = document.body.clientHeight;
-            var width = document.body.clientWidth;
+        function correctLocation(time) {
+            const minute = `${time.charAt(0)}${time.charAt(1)}`;
+            const sec = `${time.charAt(3)}${time.charAt(4)}`;
+            const ms = `${time.charAt(6)}${time.charAt(7)}`;
 
-            var rect = getStageSize();
+            const track = getTrackSize();
 
-            if(!checkIfCoordsInBox(rect, event.clientX, event.clientY)) {
-                return
+            const topRight = { x: track.right, y: track.top }; //xx:(odd)2.10
+            const bottomRight = { x: track.right, y: track.bottom }; //xx:(odd)3.00
+            const topLeft = { x: track.left, y: track.top }; //xx:(even)3.00
+            const bottomLeft = { x: track.left, y: track.bottom }; //xx:(even)2.10
+
+            const timeToTicks = `${sec}${ms}`;
+            var firstChar = parseInt(timeToTicks.charAt(0));
+            if(firstChar % 2 == 0) { //even
+                firstChar = firstChar + 1;
+            } else { //odd
+                if(parseInt(`${sec.charAt(1)}${ms}`) > 300) { // Check if number is < x300
+                    firstChar = firstChar + 2;
+                }
+            }
+            const bottomRightTick = parseInt(`${firstChar}300`)
+            const ticksFromBottomRight = bottomRightTick - parseInt(timeToTicks);
+
+            console.log(ticksFromBottomRight)
+
+            var x = 0;
+            var y = 0;
+
+            const W = bottomRight.x - topLeft.x;
+            const H = bottomRight.y - topLeft.y;
+
+            if(ticksFromBottomRight < 90) { //RIGHT LINE
+                x = bottomRight.x;
+                //y = (bottomRight.y * ticksFromBottomRight)/90
+                y = bottomRight.y - ticksFromBottomRight;
+            } else if(ticksFromBottomRight < 1000 && ticksFromBottomRight > 90) { //TOP LINE
+                y = topRight.y;
+                x = topRight.x - ticksFromBottomRight;
+            } else if(ticksFromBottomRight < 1090 && ticksFromBottomRight > 1000) { //LEFT LINE
+                x = topLeft.x;
+                y = (bottomLeft.y * ticksFromBottomRight)/1090
+            } else if(ticksFromBottomRight < 2000 && ticksFromBottomRight > 1090) { //BOTTOM LINE
+                y = bottomLeft.y;
+                x = (bottomRight.x * ticksFromBottomRight)/2000
             }
 
+            randall.hidden = false;
+            randall.style.left = `${x-25}px`;
+            randall.style.top = `${y-25}px`;
+
+            console.log(`${x}, ${y}`);
+        }
+
+        /* EVENTS */
+        function onClickEvent(event) {
             const randall = document.getElementById("randall");
             randall.hidden = false;
-            randall.style.top = `${event.clientY-25}px`;
-            randall.style.left = `${event.clientX-25}px`;
+            randall.style.top = `${event.clientY}px`;
+            randall.style.left = `${event.clientX}px`;
         }
 
         /* TIMER */
@@ -111,6 +166,8 @@
 
             const timer = document.getElementById('timer');
             timer.textContent = formattedTime;
+
+            return(formattedTime);
         }
 
         function getRandomTime(minSeconds, maxSeconds) {
@@ -135,12 +192,23 @@
             selectRandTime();
             const randall = document.getElementById("randall");
             randall.hidden = true;
-            console.log('Window resized');
         }
 
-        selectRandTime();
+        //const timeSelected = selectRandTime();
+        
+        let currentTime = 2000;
+        const interval = setInterval(() => {
+            currentTime--;
+            const formattedTime = formatTime(currentTime/100);
+            correctLocation(formattedTime);
+            if(currentTime <= 0) {
+                window.clearInterval(interval);
+            }
+        }, 10);
 
-        document.addEventListener("click", onClickEvent)
-        window.addEventListener("resize", function(event) { reset(); });
+        var stage = document.getElementById("stage");
+        stage.addEventListener("click", onClickEvent);
+
+        //window.addEventListener("resize", function(event) { reset(); });
     </script>
 </body>
