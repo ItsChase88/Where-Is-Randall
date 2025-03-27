@@ -85,11 +85,6 @@
 
     <script>
         /* RANDALL */
-        const ROUND_TIME = 480_000;
-        const RANDALL_PERIOD = 20_000;
-        const RANDALL_PHASE = 13000;
-
-        let elapsed = 0;
         
         function getTrackSize() {
             const element = document.getElementById("track");
@@ -102,44 +97,57 @@
         }
 
         function correctLocation(time) {
+            const minute = `${time.charAt(0)}${time.charAt(1)}`;
+            const sec = `${time.charAt(3)}${time.charAt(4)}`;
+            const ms = `${time.charAt(6)}${time.charAt(7)}`;
+
             const track = getTrackSize();
 
-            const bottomRight = { x: track.right, y: track.bottom }; //xx:(odd)3.00
             const topRight = { x: track.right, y: track.top }; //xx:(odd)2.10
+            const bottomRight = { x: track.right, y: track.bottom }; //xx:(odd)3.00
             const topLeft = { x: track.left, y: track.top }; //xx:(even)3.00
             const bottomLeft = { x: track.left, y: track.bottom }; //xx:(even)2.10
 
-            const trackLength = track.width * 2 + track.height * 2;
-
-            const tickNormalized = ((time + RANDALL_PHASE) % RANDALL_PERIOD) / RANDALL_PERIOD;
-            const breakPoint = {
-              right: track.height / trackLength,
-              top: (track.width + track.height) / trackLength,
-              left: (track.height + track.width + track.height) / trackLength,
-              bottom: 1,
+            const timeToTicks = `${sec}${ms}`;
+            var firstChar = parseInt(timeToTicks.charAt(0));
+            if(firstChar % 2 == 0) { //even
+                if(firstChar == 0) {
+                    firstChar = 0;
+                } else {
+                    firstChar = firstChar + 1;
+                }
+            } else { //odd
+                if(parseInt(`${sec.charAt(1)}${ms}`) > 300) { // Check if number is < x300
+                    firstChar = firstChar + 2;
+                }
             }
+            const bottomRightTick = parseInt(`${firstChar}300`)
+            const ticksFromBottomRight = bottomRightTick - parseInt(timeToTicks);
+
+            console.log(ticksFromBottomRight)
 
             var x = 0;
             var y = 0;
 
-            if (tickNormalized < breakPoint.right) { //RIGHT LINE
-                x = bottomRight.x;
-                y = bottomRight.y - ((tickNormalized / breakPoint.right) * track.height);
-            } else if (tickNormalized < breakPoint.top) { //TOP LINE
-                x = topRight.x - (((tickNormalized - breakPoint.right) / (breakPoint.top - breakPoint.right)) * track.width);
+            if(ticksFromBottomRight < 90) { //RIGHT LINE
+                x = topRight.x;
+                y = bottomRight.y - (ticksFromBottomRight - 25);
+            } else if(ticksFromBottomRight < 1000 && ticksFromBottomRight > 90) { //TOP LINE
                 y = topRight.y;
-            } else if (tickNormalized < breakPoint.left) { //LEFT LINE
+                x = topRight.x - (ticksFromBottomRight - 110);
+            } else if(ticksFromBottomRight < 1090 && ticksFromBottomRight > 1000) { //LEFT LINE
                 x = topLeft.x;
-                y = topLeft.y + (((tickNormalized - breakPoint.top) / (breakPoint.left - breakPoint.top)) * track.height);
-            } else { //BOTTOM LINE
-                x = bottomLeft.x + (((tickNormalized - breakPoint.left) / (breakPoint.bottom - breakPoint.left)) * track.width);
+                y = topLeft.y + (ticksFromBottomRight - 1025);
+            } else if(ticksFromBottomRight < 2000 && ticksFromBottomRight > 1090) { //BOTTOM LINE
                 y = bottomLeft.y;
+                x = bottomLeft.x + (ticksFromBottomRight - 1212);
             }
 
             randall.hidden = false;
             randall.style.left = `${x-25}px`;
             randall.style.top = `${y-25}px`;
 
+            console.log(`${x}, ${y}`);
         }
 
         /* EVENTS */
@@ -152,8 +160,8 @@
 
         /* TIMER */
         
-        function setTimer(ms) {
-            const time = (ROUND_TIME - ms) / 1000;
+        function selectRandTime() {
+            const time = getRandomTime(0.01, 480);
             const formattedTime = formatTime(time);
 
             const timer = document.getElementById('timer');
@@ -186,14 +194,22 @@
             randall.hidden = true;
         }
 
+        //const timeSelected = selectRandTime();
+
+        let currentTime = 48000;
+        const interval = setInterval(() => {
+            currentTime--;
+            const formattedTime = formatTime(currentTime/100);
+            correctLocation(formattedTime);
+            timer.textContent = formattedTime;
+            if(currentTime <= 0) {
+                window.clearInterval(interval);
+            }
+        }, 10);
+
         var stage = document.getElementById("stage");
         stage.addEventListener("click", onClickEvent);
 
-        const randomTime = Math.ceil(480_000 * Math.random());
-        elapsed = randomTime;
-        setTimer(elapsed)
-        correctLocation(elapsed);
-
-        //window.addEventListener("resize", function(event) { reset(); });
+        window.addEventListener("resize", function(event) { reset(); });
     </script>
 </body>
