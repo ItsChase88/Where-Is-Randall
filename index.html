@@ -69,6 +69,7 @@
 </head>
 <body>
     <h1>Where's Randall?</h1>
+    <a href=""><h1 id="reset">Reset ↻</h1></a>
     <div class="container">
         <div id="stage">
             <div class="timerBox">
@@ -194,6 +195,8 @@
             correctLocation(elapsed);
             const randall = document.getElementById("randall");
             randall.hidden = true;
+            const userRandall = document.getElementById("userRandall");
+            userRandall.hidden = true;
         }
 
         setup();
