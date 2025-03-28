@@ -11,7 +11,11 @@
             background-color: #242424;
         }
 
-        h1, h3 {
+        h1, h2, h3 {
+            text-align: center;
+        }
+
+        #status {
             text-align: center;
         }
 
@@ -69,7 +73,8 @@
 </head>
 <body>
     <h1>Where's Randall?</h1>
-    <a href=""><h1 id="reset">Reset ↻</h1></a>
+    <a href=""><h2 id="reset">Reset ↻</h2></a>
+    <h3 id="status">Click on the screen where you think Randall should be!</h3>
     <div class="container">
         <div id="stage">
             <div class="timerBox">
@@ -156,6 +161,25 @@
             userRandall.hidden = false;
             userRandall.style.top = `${event.clientY-25}px`;
             userRandall.style.left = `${event.clientX-25}px`;
+
+            const status = document.getElementById("status");
+
+            //Check to see if the userRandall is close to Randall
+            const randallRect = randall.getBoundingClientRect();
+            const max = { x: randallRect.left + 50, y: randallRect.top + 50 };
+            const min = { x: randallRect.left - 50, y: randallRect.top - 50 };
+
+            const userX = parseInt(userRandall.style.left);
+            const userY = parseInt(userRandall.style.top);
+
+            if(
+                (userY < max.y && userX < max.x) &&
+                (userY > min.y && userX > min.x)
+            ) {
+                status.textContent = "You are correct!";
+            } else {
+                status.textContent = "You are incorrect!";
+            }
         }
 
         /* TIMER */
@@ -197,6 +221,9 @@
             randall.hidden = true;
             const userRandall = document.getElementById("userRandall");
             userRandall.hidden = true;
+            const status = document.getElementById("userRandall");
+            status.textContent = "";
+            status.hidden = true;
         }
 
         setup();
